@@ -1,0 +1,550 @@
+<pre style='color:#000000;background:#ffffff;'><span style='color:#004a43; '>name</span> <span style='color:#0000e6; '>"calc2"</span>
+
+<span style='color:#696969; '>; command prompt based simple calculator (+,-,*,/) for 8086.</span>
+<span style='color:#696969; '>; example of calculation:</span>
+<span style='color:#696969; '>; input 1 &lt;- number:   10 </span>
+<span style='color:#696969; '>; input 2 &lt;- operator: - </span>
+<span style='color:#696969; '>; input 3 &lt;- number:   5 </span>
+<span style='color:#696969; '>; ------------------- </span>
+<span style='color:#696969; '>;     10 - 5 = 5 </span>
+<span style='color:#696969; '>; output  -> number:   5</span>
+
+
+
+
+
+<span style='color:#696969; '>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span style='color:#696969; '>;;; this maro is copied from emu8086.inc ;;;</span>
+<span style='color:#696969; '>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span style='color:#696969; '>; this macro prints a char in AL and advances</span>
+<span style='color:#696969; '>; the current cursor position:</span>
+PUTC    <span style='color:#004a43; '>MACRO</span>   char
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> char
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AH</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Eh</span>
+        <span style='color:#800000; font-weight:bold; '>INT</span>     <span style='color:#008000; '>10h</span>     
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+<span style='color:#004a43; '>ENDM</span>
+<span style='color:#696969; '>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+
+
+
+
+
+<span style='color:#004a43; '>org</span> <span style='color:#008000; '>100h</span>
+
+<span style='color:#800000; font-weight:bold; '>jmp</span> <span style='color:#e34adc; '>start</span>
+
+
+<span style='color:#696969; '>; define variables:</span>
+
+msg0 <span style='color:#004a43; '>db</span> <span style='color:#0000e6; '>"note: calculator works with integer values only."</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Ah</span>
+     <span style='color:#004a43; '>db</span> <span style='color:#0000e6; '>"to learn how to output the result of a float division see float.asm in examples"</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Ah</span><span style='color:#808030; '>,</span><span style='color:#0000e6; '>'$'</span>
+msg1 <span style='color:#004a43; '>db</span> <span style='color:#008000; '>0Dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Ah</span><span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'enter first number: $'</span>
+msg2 <span style='color:#004a43; '>db</span> <span style='color:#0000e6; '>"enter the operator:    +  -  *  /     : $"</span>
+msg3 <span style='color:#004a43; '>db</span> <span style='color:#0000e6; '>"enter second number: $"</span>
+msg4 <span style='color:#004a43; '>db</span>  <span style='color:#008000; '>0dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0ah</span> <span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'the approximate result of my calculations is : $'</span> 
+msg5 <span style='color:#004a43; '>db</span>  <span style='color:#008000; '>0dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0ah</span> <span style='color:#808030; '>,</span><span style='color:#0000e6; '>'thank you for using the calculator! press any key... '</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Ah</span><span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'$'</span>
+err1 <span style='color:#004a43; '>db</span>  <span style='color:#0000e6; '>"wrong operator!"</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Dh</span><span style='color:#808030; '>,</span><span style='color:#008000; '>0Ah</span> <span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'$'</span>
+smth <span style='color:#004a43; '>db</span>  <span style='color:#0000e6; '>" and something.... $"</span>
+
+<span style='color:#696969; '>; operator can be: '+','-','*','/' or 'q' to exit in the middle.</span>
+opr <span style='color:#004a43; '>db</span> <span style='color:#0000e6; '>'?'</span>
+
+<span style='color:#696969; '>; first and second number:</span>
+num1 <span style='color:#004a43; '>dw</span> <span style='color:#808030; '>?</span>
+num2 <span style='color:#004a43; '>dw</span> <span style='color:#808030; '>?</span>
+
+
+<span style='color:#e34adc; '>start:</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> <span style='color:#800000; font-weight:bold; '>offset</span> msg0
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>9</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>
+
+
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> msg1
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>    <span style='color:#696969; '>; output string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+
+
+<span style='color:#696969; '>; get the multi-digit signed number</span>
+<span style='color:#696969; '>; from the keyboard, and store</span>
+<span style='color:#696969; '>; the result in cx register:</span>
+
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>scan_num</span>
+
+<span style='color:#696969; '>; store first number:</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> num1<span style='color:#808030; '>,</span> <span style='color:#000080; '>cx</span> 
+
+
+
+<span style='color:#696969; '>; new line:</span>
+putc <span style='color:#008000; '>0Dh</span>
+putc <span style='color:#008000; '>0Ah</span>
+
+
+
+
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> msg2
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>     <span style='color:#696969; '>; output string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+
+
+<span style='color:#696969; '>; get operator:</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>1</span>   <span style='color:#696969; '>; single char input to AL.</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> opr<span style='color:#808030; '>,</span> <span style='color:#000080; '>al</span>
+
+
+
+<span style='color:#696969; '>; new line:</span>
+putc <span style='color:#008000; '>0Dh</span>
+putc <span style='color:#008000; '>0Ah</span>
+
+
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'q'</span>      <span style='color:#696969; '>; q - exit in the middle.</span>
+<span style='color:#800000; font-weight:bold; '>je</span> <span style='color:#e34adc; '>exit</span>
+
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'*'</span>
+<span style='color:#800000; font-weight:bold; '>jb</span> <span style='color:#e34adc; '>wrong_opr</span>
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'/'</span>
+<span style='color:#800000; font-weight:bold; '>ja</span> <span style='color:#e34adc; '>wrong_opr</span>
+
+
+
+
+
+
+<span style='color:#696969; '>; output of a string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> msg3
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+
+
+<span style='color:#696969; '>; get the multi-digit signed number</span>
+<span style='color:#696969; '>; from the keyboard, and store</span>
+<span style='color:#696969; '>; the result in cx register:</span>
+
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>scan_num</span>
+
+
+<span style='color:#696969; '>; store second number:</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> num2<span style='color:#808030; '>,</span> <span style='color:#000080; '>cx</span> 
+
+
+
+
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> msg4
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>      <span style='color:#696969; '>; output string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+
+
+
+
+<span style='color:#696969; '>; calculate:</span>
+
+
+
+
+
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'+'</span>
+<span style='color:#800000; font-weight:bold; '>je</span> <span style='color:#e34adc; '>do_plus</span>
+
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'-'</span>
+<span style='color:#800000; font-weight:bold; '>je</span> <span style='color:#e34adc; '>do_minus</span>
+
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'*'</span>
+<span style='color:#800000; font-weight:bold; '>je</span> <span style='color:#e34adc; '>do_mult</span>
+
+<span style='color:#800000; font-weight:bold; '>cmp</span> opr<span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'/'</span>
+<span style='color:#800000; font-weight:bold; '>je</span> <span style='color:#e34adc; '>do_div</span>
+
+
+<span style='color:#696969; '>; none of the above....</span>
+<span style='color:#e34adc; '>wrong_opr:</span>
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> err1
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>     <span style='color:#696969; '>; output string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+
+
+<span style='color:#e34adc; '>exit:</span>
+<span style='color:#696969; '>; output of a string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> msg5
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+
+
+<span style='color:#696969; '>; wait for any key...</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>16h</span>
+
+
+<span style='color:#800000; font-weight:bold; '>ret</span>  <span style='color:#696969; '>; return back to os.</span>
+
+
+
+
+
+
+
+
+
+
+
+<span style='color:#e34adc; '>do_plus:</span>
+
+
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ax</span><span style='color:#808030; '>,</span> num1
+<span style='color:#800000; font-weight:bold; '>add</span> <span style='color:#000080; '>ax</span><span style='color:#808030; '>,</span> num2
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>print_num</span>    <span style='color:#696969; '>; print ax value.</span>
+
+<span style='color:#800000; font-weight:bold; '>jmp</span> <span style='color:#e34adc; '>exit</span>
+
+
+
+<span style='color:#e34adc; '>do_minus:</span>
+
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ax</span><span style='color:#808030; '>,</span> num1
+<span style='color:#800000; font-weight:bold; '>sub</span> <span style='color:#000080; '>ax</span><span style='color:#808030; '>,</span> num2
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>print_num</span>    <span style='color:#696969; '>; print ax value.</span>
+
+<span style='color:#800000; font-weight:bold; '>jmp</span> <span style='color:#e34adc; '>exit</span>
+
+
+
+
+<span style='color:#e34adc; '>do_mult:</span>
+
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ax</span><span style='color:#808030; '>,</span> num1
+<span style='color:#800000; font-weight:bold; '>imul</span> num2 <span style='color:#696969; '>; (dx ax) = ax * num2. </span>
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>print_num</span>    <span style='color:#696969; '>; print ax value.</span>
+<span style='color:#696969; '>; dx is ignored (calc works with tiny numbers only).</span>
+
+<span style='color:#800000; font-weight:bold; '>jmp</span> <span style='color:#e34adc; '>exit</span>
+
+
+
+
+<span style='color:#e34adc; '>do_div:</span>
+<span style='color:#696969; '>; dx is ignored (calc works with tiny integer numbers only).</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ax</span><span style='color:#808030; '>,</span> num1
+<span style='color:#800000; font-weight:bold; '>idiv</span> num2  <span style='color:#696969; '>; ax = (dx ax) / num2.</span>
+<span style='color:#800000; font-weight:bold; '>cmp</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+<span style='color:#800000; font-weight:bold; '>jnz</span> <span style='color:#e34adc; '>approx</span>
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>print_num</span>    <span style='color:#696969; '>; print ax value.</span>
+<span style='color:#800000; font-weight:bold; '>jmp</span> <span style='color:#e34adc; '>exit</span>
+<span style='color:#e34adc; '>approx:</span>
+<span style='color:#800000; font-weight:bold; '>call</span> <span style='color:#e34adc; '>print_num</span>    <span style='color:#696969; '>; print ax value.</span>
+<span style='color:#800000; font-weight:bold; '>lea</span> <span style='color:#000080; '>dx</span><span style='color:#808030; '>,</span> smth
+<span style='color:#800000; font-weight:bold; '>mov</span> <span style='color:#000080; '>ah</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>09h</span>    <span style='color:#696969; '>; output string at ds:dx</span>
+<span style='color:#800000; font-weight:bold; '>int</span> <span style='color:#008000; '>21h</span>  
+<span style='color:#800000; font-weight:bold; '>jmp</span> <span style='color:#e34adc; '>exit</span>
+
+
+
+
+
+
+
+
+
+<span style='color:#696969; '>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+<span style='color:#696969; '>;;; these functions are copied from emu8086.inc ;;;</span>
+<span style='color:#696969; '>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</span>
+
+
+<span style='color:#696969; '>; gets the multi-digit SIGNED number from the keyboard,</span>
+<span style='color:#696969; '>; and stores the result in CX register:</span>
+SCAN_NUM        <span style='color:#004a43; '>PROC</span>    <span style='color:#800000; font-weight:bold; '>NEAR</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>DX</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>SI</span>
+        
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+
+        <span style='color:#696969; '>; reset flag:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>make_minus<span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+
+<span style='color:#e34adc; '>next_digit:</span>
+
+        <span style='color:#696969; '>; get char from keyboard</span>
+        <span style='color:#696969; '>; into AL:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AH</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>00h</span>
+        <span style='color:#800000; font-weight:bold; '>INT</span>     <span style='color:#008000; '>16h</span>
+        <span style='color:#696969; '>; and print it:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AH</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Eh</span>
+        <span style='color:#800000; font-weight:bold; '>INT</span>     <span style='color:#008000; '>10h</span>
+
+        <span style='color:#696969; '>; check for MINUS:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'-'</span>
+        <span style='color:#800000; font-weight:bold; '>JE</span>      <span style='color:#e34adc; '>set_minus</span>
+
+        <span style='color:#696969; '>; check for ENTER key:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Dh</span>  <span style='color:#696969; '>; carriage return?</span>
+        <span style='color:#800000; font-weight:bold; '>JNE</span>     <span style='color:#e34adc; '>not_cr</span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>stop_input</span>
+<span style='color:#e34adc; '>not_cr:</span>
+
+
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>8</span>                   <span style='color:#696969; '>; 'BACKSPACE' pressed?</span>
+        <span style='color:#800000; font-weight:bold; '>JNE</span>     <span style='color:#e34adc; '>backspace_checked</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>                   <span style='color:#696969; '>; remove last digit by</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>CX</span>                  <span style='color:#696969; '>; division:</span>
+        <span style='color:#800000; font-weight:bold; '>DIV</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>ten                  <span style='color:#696969; '>; AX = DX:AX / 10 (DX-rem).</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>AX</span>
+        PUTC    <span style='color:#0000e6; '>' '</span>                     <span style='color:#696969; '>; clear position.</span>
+        PUTC    <span style='color:#008c00; '>8</span>                       <span style='color:#696969; '>; backspace again.</span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>next_digit</span>
+<span style='color:#e34adc; '>backspace_checked:</span>
+
+
+        <span style='color:#696969; '>; allow only digits:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'0'</span>
+        <span style='color:#800000; font-weight:bold; '>JAE</span>     <span style='color:#e34adc; '>ok_AE_0</span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>remove_not_digit</span>
+<span style='color:#e34adc; '>ok_AE_0:</span>        
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#0000e6; '>'9'</span>
+        <span style='color:#800000; font-weight:bold; '>JBE</span>     <span style='color:#e34adc; '>ok_digit</span>
+<span style='color:#e34adc; '>remove_not_digit:</span>       
+        PUTC    <span style='color:#008c00; '>8</span>       <span style='color:#696969; '>; backspace.</span>
+        PUTC    <span style='color:#0000e6; '>' '</span>     <span style='color:#696969; '>; clear last entered not digit.</span>
+        PUTC    <span style='color:#008c00; '>8</span>       <span style='color:#696969; '>; backspace again.        </span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>next_digit</span> <span style='color:#696969; '>; wait for next input.       </span>
+<span style='color:#e34adc; '>ok_digit:</span>
+
+
+        <span style='color:#696969; '>; multiply CX by 10 (first time the result is zero)</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>CX</span>
+        <span style='color:#800000; font-weight:bold; '>MUL</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>ten                  <span style='color:#696969; '>; DX:AX = AX*10</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+
+        <span style='color:#696969; '>; check if the number is too big</span>
+        <span style='color:#696969; '>; (result should be 16 bits)</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JNE</span>     <span style='color:#e34adc; '>too_big</span>
+
+        <span style='color:#696969; '>; convert from ASCII code:</span>
+        <span style='color:#800000; font-weight:bold; '>SUB</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>30h</span>
+
+        <span style='color:#696969; '>; add AL to CX:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AH</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>CX</span>      <span style='color:#696969; '>; backup, in case the result will be too big.</span>
+        <span style='color:#800000; font-weight:bold; '>ADD</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>JC</span>      <span style='color:#e34adc; '>too_big2</span>    <span style='color:#696969; '>; jump if the number is too big.</span>
+
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>next_digit</span>
+
+<span style='color:#e34adc; '>set_minus:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>make_minus<span style='color:#808030; '>,</span> <span style='color:#008c00; '>1</span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>next_digit</span>
+
+<span style='color:#e34adc; '>too_big2:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>DX</span>      <span style='color:#696969; '>; restore the backuped value before add.</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>       <span style='color:#696969; '>; DX was zero before backup!</span>
+<span style='color:#e34adc; '>too_big:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>CX</span>
+        <span style='color:#800000; font-weight:bold; '>DIV</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>ten  <span style='color:#696969; '>; reverse last DX:AX = AX*10, make AX = DX:AX / 10</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>AX</span>
+        PUTC    <span style='color:#008c00; '>8</span>       <span style='color:#696969; '>; backspace.</span>
+        PUTC    <span style='color:#0000e6; '>' '</span>     <span style='color:#696969; '>; clear last entered digit.</span>
+        PUTC    <span style='color:#008c00; '>8</span>       <span style='color:#696969; '>; backspace again.        </span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>next_digit</span> <span style='color:#696969; '>; wait for Enter/Backspace.</span>
+        
+        
+<span style='color:#e34adc; '>stop_input:</span>
+        <span style='color:#696969; '>; check flag:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>make_minus<span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JE</span>      <span style='color:#e34adc; '>not_minus</span>
+        <span style='color:#800000; font-weight:bold; '>NEG</span>     <span style='color:#000080; '>CX</span>
+<span style='color:#e34adc; '>not_minus:</span>
+
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>SI</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>DX</span>
+        <span style='color:#800000; font-weight:bold; '>RET</span>
+make_minus      <span style='color:#004a43; '>DB</span>      <span style='color:#808030; '>?</span>       <span style='color:#696969; '>; used as a flag.</span>
+SCAN_NUM        <span style='color:#004a43; '>ENDP</span>
+
+
+
+
+
+<span style='color:#696969; '>; this procedure prints number in AX,</span>
+<span style='color:#696969; '>; used with PRINT_NUM_UNS to print signed numbers:</span>
+PRINT_NUM       <span style='color:#004a43; '>PROC</span>    <span style='color:#800000; font-weight:bold; '>NEAR</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>DX</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JNZ</span>     <span style='color:#e34adc; '>not_zero</span>
+
+        PUTC    <span style='color:#0000e6; '>'0'</span>
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>printed</span>
+
+<span style='color:#e34adc; '>not_zero:</span>
+        <span style='color:#696969; '>; the check SIGN of AX,</span>
+        <span style='color:#696969; '>; make absolute if it's negative:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JNS</span>     <span style='color:#e34adc; '>positive</span>
+        <span style='color:#800000; font-weight:bold; '>NEG</span>     <span style='color:#000080; '>AX</span>
+
+        PUTC    <span style='color:#0000e6; '>'-'</span>
+
+<span style='color:#e34adc; '>positive:</span>
+        <span style='color:#800000; font-weight:bold; '>CALL</span>    <span style='color:#e34adc; '>PRINT_NUM_UNS</span>
+<span style='color:#e34adc; '>printed:</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>DX</span>
+        <span style='color:#800000; font-weight:bold; '>RET</span>
+PRINT_NUM       <span style='color:#004a43; '>ENDP</span>
+
+
+
+<span style='color:#696969; '>; this procedure prints out an unsigned</span>
+<span style='color:#696969; '>; number in AX (not just a single digit)</span>
+<span style='color:#696969; '>; allowed values are from 0 to 65535 (FFFF)</span>
+PRINT_NUM_UNS   <span style='color:#004a43; '>PROC</span>    <span style='color:#800000; font-weight:bold; '>NEAR</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>BX</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>CX</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>DX</span>
+
+        <span style='color:#696969; '>; flag to prevent printing zeros before number:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>1</span>
+
+        <span style='color:#696969; '>; (result of "/ 10000" is always less or equal to 9).</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>BX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>10000</span>       <span style='color:#696969; '>; 2710h - divider.</span>
+
+        <span style='color:#696969; '>; AX is zero?</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JZ</span>      <span style='color:#e34adc; '>print_zero</span>
+
+<span style='color:#e34adc; '>begin_print:</span>
+
+        <span style='color:#696969; '>; check divider (if zero go to end_print):</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>BX</span><span style='color:#808030; '>,</span><span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JZ</span>      <span style='color:#e34adc; '>end_print</span>
+
+        <span style='color:#696969; '>; avoid printing zeros before number:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>JE</span>      <span style='color:#e34adc; '>calc</span>
+        <span style='color:#696969; '>; if AX&lt;BX then result of DIV will be zero:</span>
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>BX</span>
+        <span style='color:#800000; font-weight:bold; '>JB</span>      <span style='color:#e34adc; '>skip</span>
+<span style='color:#e34adc; '>calc:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>   <span style='color:#696969; '>; set flag.</span>
+
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>DIV</span>     <span style='color:#000080; '>BX</span>      <span style='color:#696969; '>; AX = DX:AX / BX   (DX=remainder).</span>
+
+        <span style='color:#696969; '>; print last digit</span>
+        <span style='color:#696969; '>; AH is always ZERO, so it's ignored</span>
+        <span style='color:#800000; font-weight:bold; '>ADD</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>30h</span>    <span style='color:#696969; '>; convert to ASCII code.</span>
+        PUTC    <span style='color:#000080; '>AL</span>
+
+
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>DX</span>  <span style='color:#696969; '>; get remainder from last div.</span>
+
+<span style='color:#e34adc; '>skip:</span>
+        <span style='color:#696969; '>; calculate BX=BX/10</span>
+        <span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>BX</span>
+        <span style='color:#800000; font-weight:bold; '>DIV</span>     <span style='color:#000080; '>CS</span><span style='color:#808030; '>:</span>ten  <span style='color:#696969; '>; AX = DX:AX / 10   (DX=remainder).</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>BX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+
+        <span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>begin_print</span>
+        
+<span style='color:#e34adc; '>print_zero:</span>
+        PUTC    <span style='color:#0000e6; '>'0'</span>
+        
+<span style='color:#e34adc; '>end_print:</span>
+
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>DX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>CX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>BX</span>
+        <span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+        <span style='color:#800000; font-weight:bold; '>RET</span>
+PRINT_NUM_UNS   <span style='color:#004a43; '>ENDP</span>
+
+
+
+ten             <span style='color:#004a43; '>DW</span>      <span style='color:#008c00; '>10</span>      <span style='color:#696969; '>; used as multiplier/divider by SCAN_NUM &amp; PRINT_NUM_UNS.</span>
+
+
+
+
+
+
+
+GET_STRING      <span style='color:#004a43; '>PROC</span>    <span style='color:#800000; font-weight:bold; '>NEAR</span>
+<span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>AX</span>
+<span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>CX</span>
+<span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>DI</span>
+<span style='color:#800000; font-weight:bold; '>PUSH</span>    <span style='color:#000080; '>DX</span>
+
+<span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>                   <span style='color:#696969; '>; char counter.</span>
+
+<span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>DX</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>1</span>                   <span style='color:#696969; '>; buffer too small?</span>
+<span style='color:#800000; font-weight:bold; '>JBE</span>     <span style='color:#e34adc; '>empty_buffer</span>            <span style='color:#696969; '>;</span>
+
+<span style='color:#800000; font-weight:bold; '>DEC</span>     <span style='color:#000080; '>DX</span>                      <span style='color:#696969; '>; reserve space for last zero.</span>
+
+
+<span style='color:#696969; '>;============================</span>
+<span style='color:#696969; '>; Eternal loop to get</span>
+<span style='color:#696969; '>; and processes key presses:</span>
+
+<span style='color:#e34adc; '>wait_for_key:</span>
+
+<span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AH</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>                   <span style='color:#696969; '>; get pressed key.</span>
+<span style='color:#800000; font-weight:bold; '>INT</span>     <span style='color:#008000; '>16h</span>
+
+<span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Dh</span>                  <span style='color:#696969; '>; 'RETURN' pressed?</span>
+<span style='color:#800000; font-weight:bold; '>JZ</span>      <span style='color:#e34adc; '>exit_GET_STRING</span>
+
+
+<span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>AL</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>8</span>                   <span style='color:#696969; '>; 'BACKSPACE' pressed?</span>
+<span style='color:#800000; font-weight:bold; '>JNE</span>     <span style='color:#e34adc; '>add_to_buffer</span>
+<span style='color:#800000; font-weight:bold; '>JCXZ</span>    <span style='color:#e34adc; '>wait_for_key</span>            <span style='color:#696969; '>; nothing to remove!</span>
+<span style='color:#800000; font-weight:bold; '>DEC</span>     <span style='color:#000080; '>CX</span>
+<span style='color:#800000; font-weight:bold; '>DEC</span>     <span style='color:#000080; '>DI</span>
+PUTC    <span style='color:#008c00; '>8</span>                       <span style='color:#696969; '>; backspace.</span>
+PUTC    <span style='color:#0000e6; '>' '</span>                     <span style='color:#696969; '>; clear position.</span>
+PUTC    <span style='color:#008c00; '>8</span>                       <span style='color:#696969; '>; backspace again.</span>
+<span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>wait_for_key</span>
+
+<span style='color:#e34adc; '>add_to_buffer:</span>
+
+        <span style='color:#800000; font-weight:bold; '>CMP</span>     <span style='color:#000080; '>CX</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>DX</span>          <span style='color:#696969; '>; buffer is full?</span>
+        <span style='color:#800000; font-weight:bold; '>JAE</span>     <span style='color:#e34adc; '>wait_for_key</span>    <span style='color:#696969; '>; if so wait for 'BACKSPACE' or 'RETURN'...</span>
+
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#808030; '>[</span><span style='color:#000080; '>DI</span><span style='color:#808030; '>]</span><span style='color:#808030; '>,</span> <span style='color:#000080; '>AL</span>
+        <span style='color:#800000; font-weight:bold; '>INC</span>     <span style='color:#000080; '>DI</span>
+        <span style='color:#800000; font-weight:bold; '>INC</span>     <span style='color:#000080; '>CX</span>
+        
+        <span style='color:#696969; '>; print the key:</span>
+        <span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#000080; '>AH</span><span style='color:#808030; '>,</span> <span style='color:#008000; '>0Eh</span>
+        <span style='color:#800000; font-weight:bold; '>INT</span>     <span style='color:#008000; '>10h</span>
+
+<span style='color:#800000; font-weight:bold; '>JMP</span>     <span style='color:#e34adc; '>wait_for_key</span>
+<span style='color:#696969; '>;============================</span>
+
+<span style='color:#e34adc; '>exit_GET_STRING:</span>
+
+<span style='color:#696969; '>; terminate by null:</span>
+<span style='color:#800000; font-weight:bold; '>MOV</span>     <span style='color:#808030; '>[</span><span style='color:#000080; '>DI</span><span style='color:#808030; '>]</span><span style='color:#808030; '>,</span> <span style='color:#008c00; '>0</span>
+
+<span style='color:#e34adc; '>empty_buffer:</span>
+
+<span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>DX</span>
+<span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>DI</span>
+<span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>CX</span>
+<span style='color:#800000; font-weight:bold; '>POP</span>     <span style='color:#000080; '>AX</span>
+<span style='color:#800000; font-weight:bold; '>RET</span>
+GET_STRING      <span style='color:#004a43; '>ENDP</span>
+</pre>

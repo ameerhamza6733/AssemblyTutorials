@@ -1,0 +1,241 @@
+<resources>
+    <string name="app_name">Assembly 8086</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_exit">Close</string>
+    <string-array name="tabs">
+        <item>Programs</item>
+        <item>Videoss</item>
+        <item>PDF</item>
+        <item>PHP</item>
+        <item>java help</item>
+        <item>c++ c</item>
+    </string-array>
+    <string-array name="video">
+
+        <!--<item>Hello World Program</item>-->
+        <!--<item>Console Library</item>-->
+        <!--<item>User-defined Segments</item>-->
+        <!--<item>Measuring Time in Seconds (delay.asm) </item>-->
+        <!--<item>Enumerated Constants (enum1.asm)</item>-->
+        <!--<item>Link Library Demo Program (lnkdemo.asm)</item>-->
+        <!--<item>Random Numbers (rand.asm)</item>-->
+<item></item>
+        <item>1-Installing MASM32 SDK  Tutorial </item>
+        <item>2-Integer Constants  Tutorial </item>
+        <item>3 - Integer Expressions  Tutorial </item>
+        <item>4 - Real Number Constants  Tutorial </item>
+        <item>5 - Character Constants</item>
+        <item>6 - String Constants</item>
+        <item>7 - Reserved Words</item>
+        <item>8 - Identifiers</item>
+        <item>9 - Directives - part 1 </item>
+        <item>10 - Directives - Part 2 - Defining Segments</item>
+        <item>11 - Instructions - Part 1- Labels</item>
+        <item>12 -  Instructions - Part 2- Instructions Mnemonic</item>
+        <item>13 - Instructions-Part 3-Operands</item>
+        <item>14 - Instructions - Part 4 - Comments</item>
+        <item>15 - Installing emu8086 and Printing Hello World!</item>
+        <item>16 - Simple Input and Output</item>
+        <item>17 - Registers</item>
+        <item>18 - ASCII Table and Simple Math</item>
+        <item>19 - Defining Data and Variables</item>
+        <item>20 - MOV Instruction</item>
+        <item>21 - Copying Smaller Values to Larger Ones</item>
+        <item>22 - INC and DEC Instructions</item>
+        <item>23 - ADD and SUB Instructions</item>
+        <item>24 - NEG Instruction and Twos Complement</item>
+        <item>25 - CPU Satus Flags</item>
+        <item>26 - JMP Instruction</item>
+        <item>27 - LOOP Instruction</item>
+        <item>28 - Nested Loops</item>
+        <item>29 - PUSH and POP Instructions</item>
+        <item>30 - PUSHF, POPF,PUSHFD and POPFD Instruction</item>
+        <item>31 - PUSHAD , PUSHA , POPAD and POPA</item>
+        <item>32 - Defining and Using Procedures, CALL and RET</item>
+        <item>33 - Nested Procedure Calls</item>
+        <item>34 - AND Instruction</item>
+        <item>35 - Or Instruction</item>
+        <item>36 - XOR Instruction</item>
+        <item>37 - NOT Instruction</item>
+        <item>38 - TEST Instruction</item>
+        <item>39 - CMP Instruction</item>
+        <item> Makka live Hd</item>
+
+
+
+
+    </string-array>
+    <string-array name="programsList">
+        <item>0 Read Me First</item>
+        <item>1 Example  add Huge Numbers </item>
+        <item>2 How to draws a tiny rectangle in vga mode?</item>
+        <item>3 prints out  "hello world!"</item>
+        <item>4 How to perfrorm two numbers addction and subtraction </item>
+        <item>5 calculate the sum of elements in vector</item>
+        <item>6 sample shows how cmp instruction sets the flags.</item>
+        <item>7 convert hex to bin</item>
+        <item>8 Sum of  two arrays  and save ANS in third array </item>
+        <item>9 How to set and get file attributes</item>
+        <item>10 Add two number using AAA instruction  </item>
+        <item>11 Subtract number using AAS instruction )</item>
+        <item>12 convert  8 bit binary number decimal </item>
+        <item>13 how to make a ".bin" file.?</item>
+        <item>14 Calculates the sum of two Numbers</item>
+        <item>15 How to make Calculator?</item>
+        <item>16 compare byte strings using cmpsb instruction </item>
+        <item>17 cmpsw instruction to compare word strings</item>
+        <item>18 sample prints 16x16 color map</item>
+        <item>19 convert string number to binary</item>
+        <item>20 convert string to packed bcd</item>
+        <item>21 convert to upper case</item>
+        <item>22 counts the number of characters </item>
+        <item>23 Count number of key presses</item>
+        <item>24 Custom Interrupt</item>
+        <item>25 Date and time functions</item>
+        <item>26 double word definition</item>
+        <item>27 Data encrypt_subrotine using xlat</item>
+        <item>28 example of multi segment executable file</item>
+        <item>29 calculates factorial</item>
+        <item>30 centigrade (celsius) to fahrenheit</item>
+        <item>31 how to call int 10h without using int instruction</item>
+        <item>32 far call advanced</item>
+        <item>33 (far call 2) the correct use of far call for defined procedures</item>
+        <item>34 (fasm compatibility) Flat Assembler uses the Intel syntax</item>
+        <item>35 Example file heading / operations </item>
+        <item>36 How to calculates linear equation: ax + b = 0 </item>
+        <item>37 hello  world print char by char  </item>
+        <item>38 converts a 2 digit hexadecimal number into a numeric value</item>
+        <item>39 example of bios function int 10h / ah=13h</item>
+        <item>40 How to input / gets a string from a user, then it prints it out</item>
+        <item>41 How to use loops</item>
+        <item>42 transpose of matrix </item>
+        <item>43 mouse test program </item>
+        <item>44 mouse drawing program</item>
+        <item>45 checks if string is a palindrome or not</item>
+        <item>46 program to check how set and get pixel color works</item>
+        <item>47 how to print or output string </item>
+        <item>48 recursive function to print decimal UNsigned value of AL register</item>
+        <item>49 recursive function to print UNsigned value of AX register</item>
+        <item>50 print char by char</item>
+        <item>51 prints out a hex value of DL register</item>
+        <item>52 printer demonstration</item>
+        <item>53 reverse string </item>
+        <item>54 example of contoling the robot</item>
+        <item>55 how to use scasb instruction to find a symbol</item>
+        <item>56 how to use scasw instruction to find a word (2 bytes)</item>
+        <item>57 how to use the bios scrolling functions</item>
+        <item>58 how to access virtual ports (0 to 0FFFFh)</item>
+        <item>59 Control the snake using arrow keys</item>
+        <item>60 rogram inputs 3 numbers and sorts them from largest to smallest</item>
+        <item>61 sample shows how the stack works</item>
+        <item>62 controls the stepper-motor</item>
+        <item>63 input and output string functions</item>
+        <item>64 how to keep constant temperature</item>
+        <item>65 the use of a timer function (int 15h / 86h)</item>
+        <item>66 decimal number to binary </item>
+        <item>67 ( Nested )procedures inside another procedure</item>
+        <item>68 two procedures  one return</item>
+
+
+
+
+
+
+
+
+
+    </string-array>
+    <string-array name="Urls">
+
+        <item>mHC4-W3OUTQ</item>
+        <item>FJI52OGese8</item>
+        <item>Uthq3BztdFA</item>
+        <item>bIYWGX-s1sw</item>
+        <item>1FsQHX4eHoA</item>
+        <item>7fs-opP5iws</item>
+        <item>MOmkQyLEP1E</item>
+        <item>A5S27ZTItPU</item>
+        <item>qj34jjuxGxc</item>
+        <item>7HF3Lee9WS8</item>
+        <item>ZrE-f5ijk6g</item>
+        <item>IrZ4Ap6SG4I</item>
+        <item>N3rQANcFCe4</item>
+        <item>V25cg6rAlKg</item>
+        <item>OuDCI5pfpds</item>
+        <item>5h3GAPaHxf0</item>
+        <item>OWwC_3L26nE</item>
+        <item>DBBYFYgvc0Y</item>
+        <item>pMzjKkj1ldk</item>
+        <item>RqViXrPTDM8</item>
+        <item>7c-juLbvEyo</item>
+        <item>AjbnVoupWQc</item>
+        <item>PPn-gy-GKfE</item>
+        <item>jjS6j8rKjSw</item>
+        <item>zf1bg3WCFUI</item>
+        <item>OIODmRFp0IU</item>
+        <item>8cGQ0iYoKWE</item>
+        <item>nF_uICPiYro</item>
+        <item>e58iawzG2aA</item>
+        <item>pgDCEqZQNlU</item>
+        <item>eMUqjImJDXo</item>
+        <item>0dLkvasLSlo</item>
+        <item>hEPKOMoprcg</item>
+        <item>vyckKaG4j7U</item>
+        <item>TaNEqkgFZ7w</item>
+        <item>eUH-mfp_5BM</item>
+        <item>XGTtulrNtl8</item>
+        <item>rh6hi1bC68w</item>
+        <item>plFpgG1INpM</item>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </string-array>
+
+    <string-array name="documentation">
+        <item></item>
+        <item>numbering systems</item>
+
+        <item>part 1: what is assembly language?</item>
+        <item>part 2: memory access</item>
+        <item>part 3: variables</item>
+        <item>part 4: interrupts</item>
+        <item>part 5: library of common functions - emu8086.inc</item>
+        <item>part 6: arithmetic and logic instructions </item>
+        <item>part 7: program flow control</item>
+        <item>part 8: procedures</item>
+        <item>part 9: the stack</item>
+        <item>part 10: macros</item>
+
+
+    </string-array>
+
+    <string name="title_activity_youtube_player">YoutubePlayerActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+
+</resources>

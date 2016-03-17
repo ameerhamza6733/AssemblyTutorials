@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <com.dd.morphingbutton.MorphingButton
+        android:layout_width="172dp"
+        android:layout_height="91dp"
+        android:layout_margin="10dp"
+        android:id="@+id/progammButton"
+        android:layout_gravity="left|top"/>
+
+    <com.dd.morphingbutton.MorphingButton
+        android:layout_width="172dp"
+        android:layout_height="91dp"
+        android:id="@+id/videoButton"
+
+        android:layout_marginRight="10dp"
+        android:layout_gravity="right|top"
+        android:layout_alignTop="@+id/progammButton"
+        android:layout_toEndOf="@+id/progammButton"
+        android:layout_alignBottom="@+id/progammButton"
+        android:layout_toRightOf="@+id/progammButton"/>
+
+    <com.dd.morphingbutton.MorphingButton
+        android:layout_width="wrap_content"
+        android:layout_height="91dp"
+        android:id="@+id/docButton"
+        android:layout_alignLeft="@+id/progammButton"
+        android:layout_alignStart="@+id/progammButton"
+        android:layout_below="@+id/progammButton"
+        android:layout_alignRight="@+id/videoButton"
+        android:layout_alignEnd="@+id/videoButton"/>
+
+
+</RelativeLayout>
